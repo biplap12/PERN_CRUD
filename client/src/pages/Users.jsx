@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { rolesApi, usersApi } from "../services/api.js";
 import UserForm from "../components/users/UserForm.jsx";
 import UserTable from "../components/users/UserTable.jsx";
+import toast from "react-hot-toast";
+import ConfirmDialog from "../components/common/ConfirmDialog.jsx";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -18,6 +20,9 @@ export default function Users() {
     totalPages: 1,
   });
   const [error, setError] = useState("");
+
+  const [deleteUser, setDeleteUser] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -49,8 +54,13 @@ export default function Users() {
   async function save(data) {
     setSaving(true);
     try {
-      if (editing) await usersApi.update(editing.id, data);
-      else await usersApi.create(data);
+      if (editing) {
+        const response = await usersApi.update(editing.id, data);
+        toast.success(response.data.message);
+      } else {
+        const response = await usersApi.create(data);
+        toast.success(response.data.message);
+      }
       setEditing(null);
       await load();
     } catch (e) {
@@ -60,14 +70,40 @@ export default function Users() {
     }
   }
 
-  async function remove(user) {
-    if (!window.confirm(`Are you sure you want to delete ${user.name}?`))
-      return;
+  // async function remove(user) {
+  //   // if (!window.confirm(`Are you sure you want to delete ${user.name}?`))
+  //   //   return;
+
+  //   try {
+  //     const response = await usersApi.remove(user.id);
+  //     await load();
+  //     toast.success(response.data.message);
+  //   } catch (e) {
+  //     setError(e.response?.data?.message || "Could not delete user.");
+  //   }
+  // }
+
+  function remove(user) {
+    setDeleteUser(user);
+  }
+
+  async function confirmDelete() {
+    if (!deleteUser) return;
+
+    setDeleting(true);
+
     try {
-      await usersApi.remove(user.id);
+      const response = await usersApi.remove(deleteUser.id);
+
+      toast.success(response.data.message);
+
+      setDeleteUser(null);
+
       await load();
     } catch (e) {
       setError(e.response?.data?.message || "Could not delete user.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -139,6 +175,23 @@ export default function Users() {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={!!deleteUser}
+        title="Delete User"
+        message={
+          deleteUser ? (
+            <>
+              Are you sure you want to delete{" "}
+              <span className="user-name">{deleteUser.name}</span>?
+              <br /> This
+              action cannot be undone.
+            </>
+          ) : null
+        }
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteUser(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

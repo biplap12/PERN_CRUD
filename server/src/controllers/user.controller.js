@@ -15,7 +15,7 @@ export async function getUser(req, res) {
 
 export async function createUser(req, res) {
   const user = await userService.createUser(req.validated.body);
-  res.status(201).json({ success: true, data: user });
+  res.status(201).json({ success: true, data: user, message: "User created Successfully." });
 }
 
 export async function updateUser(req, res) {
@@ -23,7 +23,7 @@ export async function updateUser(req, res) {
     req.validated.params.id,
     req.validated.body,
   );
-  res.json({ success: true, data: user });
+  res.json({ success: true, data: user, message: "User updated successfully." });
 }
 
 export async function deleteUser(req, res) {

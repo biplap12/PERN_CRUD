@@ -14,15 +14,21 @@ export async function getRole(req, res) {
 
 export async function createRole(req, res) {
   const role = await roleService.createRole(req.validated.body);
-  res.status(201).json({ success: true, data: role });
+  res
+    .status(201)
+    .json({ success: true, data: role, message: "Role created Successfully." });
 }
 
 export async function updateRole(req, res) {
   const role = await roleService.updateRole(
     req.validated.params.id,
-    req.validated.body
+    req.validated.body,
   );
-  res.json({ success: true, data: role });
+  res.json({
+    success: true,
+    data: role,
+    message: "Role updated successfully.",
+  });
 }
 
 export async function deleteRole(req, res) {
